@@ -1,5 +1,5 @@
 // src/components/modals/BudgetModal.tsx
-import React from 'react';
+import React, { useState } from 'react';
 
 interface BudgetModalProps {
   isOpen: boolean;
@@ -7,7 +7,43 @@ interface BudgetModalProps {
 }
 
 const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
+  // ----------------------------------------------------------------------
+  // ESTADO DO FORMULÁRIO (Hooks no topo para evitar erros de Hooks)
+  // ----------------------------------------------------------------------
+  const [budgetName, setBudgetName] = useState('');
+  const [budgetAmount, setBudgetAmount] = useState('');
+  // ----------------------------------------------------------------------
+
+  // Condição de saída: Deve vir após todas as chamadas de Hooks
   if (!isOpen) return null;
+
+  // Função de filtro para o input de valor
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Permite apenas números, vírgulas e pontos
+    const rawValue = e.target.value;
+    const filteredValue = rawValue.replace(/[^0-9.,]/g, '');
+    setBudgetAmount(filteredValue);
+  };
+
+  // Função Placeholder de Submissão
+  const handleSubmit = () => {
+    if (!budgetName || !budgetAmount) {
+      alert('Preencha o nome e a quantia do orçamento.');
+      return;
+    }
+
+    const formattedAmount = parseFloat(budgetAmount.replace(',', '.'));
+
+    const budget = {
+      name: budgetName,
+      amount: formattedAmount,
+    };
+
+    console.log('Orçamento a ser salvo:', budget);
+    alert(`Orçamento "${budgetName}" de R$ ${formattedAmount.toFixed(2)} criado!`);
+    onClose();
+  };
+
 
   return (
     <div 
@@ -19,6 +55,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
         onClick={(e) => e.stopPropagation()}
         style={{ 
           padding: '2rem',
+          // Sombra para profundidade
           boxShadow: '0 10px 20px rgba(0, 0, 0, 0.5)',
         }}
       >
@@ -29,29 +66,40 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
           Crie um objetivo financeiro e defina a quantia alocada.
         </p>
 
-        {/* Placeholder do Formulário */}
+        {/* Formulário de Dados */}
         <div 
             className="flex flex-col" 
-            style={{ gap: '1rem' }}
+            style={{ gap: '1rem' }} // Espaçamento com style
         >
+            {/* Input de Nome do Orçamento */}
             <input 
                 type="text" 
                 placeholder="Nome do Orçamento (Ex: Férias, Reserva de Emergência)"
-                className="w-full bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
-                style={{ padding: '0.75rem' }}
+                value={budgetName}
+                onChange={(e) => setBudgetName(e.target.value)}
+                className="w-full bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 text-white"
+                style={{ padding: '0.75rem' }} // Padding com style
             />
+            
+            {/* Input de Quantia (com filtro) */}
             <input 
-                type="number" 
+                type="text" 
                 placeholder="Quantia Alocada (R$)"
-                className="w-full bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500"
+                value={budgetAmount}
+                onChange={handleAmountChange}
+                className="w-full bg-gray-700 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 text-white"
                 style={{ padding: '0.75rem' }}
+                inputMode="decimal"
             />
         </div>
 
         {/* Botões de Ação */}
         <div 
             className="flex justify-end" 
-            style={{ marginTop: '1.5rem', gap: '0.75rem' }}
+            style={{ 
+              marginTop: '1.5rem', // Margin com style
+              gap: '0.75rem' // Gap com style
+            }}
         >
           <button 
             className="bg-gray-600 rounded-lg hover:bg-gray-500 transition"
@@ -63,7 +111,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose }) => {
           <button 
             className="bg-blue-600 rounded-lg hover:bg-blue-700 font-semibold transition"
             style={{ padding: '0.5rem 1rem' }}
-            onClick={() => { alert('Orçamento Criado (Placeholder)'); onClose(); }}
+            onClick={handleSubmit}
           >
             Salvar Objetivo
           </button>
